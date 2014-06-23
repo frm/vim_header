@@ -8,7 +8,13 @@ AVL_DEF(Author, Author)
 
 
 /* AVL delete Author */
-static void deleteAuthor(Author author)
+void deleteAuthor(Author author)
+
+
+
+
+
+
 {
 	free(author);
 }
@@ -27,7 +33,8 @@ static int compareAuthor(Author* key_author, Author* author1, Author author2)
 }
 
 /* API for insertion in Author AVL */
-int authorTreeInsert(AuthorTree tree, char *author) {
+int authorTreeInsert(AuthorTree tree, char *author)
+{
 	return avlInsert(Author, tree, author);
 }
 

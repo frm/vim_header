@@ -3,6 +3,7 @@ module VimHeader
         attr_accessor :functions
         FUNCTION_LINE = /^(?!static)\w+.*\s?{.*$/
         FUNCTION_BREAK_LINE = /^{.*$/
+        FUNCTION_LINE_NO_PAR = /^(?!static)\w+.*$/
 
         def initialize(filename = nil)
             @functions = Array.new      # Array of functions to write in a header file
@@ -19,8 +20,11 @@ module VimHeader
             previous_line = ""
             File.open(@filename, "r").each_line do |line|
                 line = line.chomp
-                self.test_lines(line, previous_line)
-                previous_line = line
+                unless line.empty?
+                    self.test_lines(line, previous_line)
+                    previous_line = line
+                    @brackets += self.count_parenthesis(line)
+                end
             end
         end
 
@@ -32,10 +36,8 @@ module VimHeader
                 self.add_function(line)
 
             elsif(@brackets == 0 && line =~ FileParser::FUNCTION_BREAK_LINE)
-                self.add_function(previous_line) if previous_line =~ FileParser::FUNCTION_LINE
+                self.add_function(previous_line) if previous_line =~ FileParser::FUNCTION_LINE_NO_PAR
             end
-
-            @brackets += self.count_parenthesis(line)
         end
 
         def count_parenthesis(line)
@@ -53,7 +55,7 @@ module VimHeader
         def add_function(line)
             new_line = ""
             i = 0
-            until line[i] == '{' do
+            while line[i] != '{' && i < line.length do
                 new_line << line[i]
                 i += 1
             end
