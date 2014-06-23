@@ -6,6 +6,11 @@
 AVL_DEF_HEADER(Author, Author)
 AVL_DEF(Author, Author)
 
+/*
+int add(int x, int y) {
+    return x + y;
+}
+*/
 
 /* AVL delete Author */
 void deleteAuthor(Author author)
