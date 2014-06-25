@@ -1,6 +1,5 @@
-ruby_file vim_header.rb
-
 function! s:VimHeader(...)
+    ruby_file vim_header.rb
     if a:0 == 0
         let s:name = @%
         let s:ft = &ft
