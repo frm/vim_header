@@ -1,3 +1,5 @@
+#!/bin/env ruby
+
 module VimHeader
     class FileParser
         attr_accessor :functions
@@ -134,16 +136,23 @@ if __FILE__ == $0
             @filename = filename
         end
 
+        #def run
+        #    x = gets.strip
+        #    parsed = VimHeader::FileParser.new(x)
+        #    parsed.parse
+        #    parsed.functions.each{ |f| puts f }
+        #    parsed.export
+        #end
+
+
         def run
-            x = gets.strip
-            parsed = VimHeader::FileParser.new(x)
-            parsed.parse
-            parsed.functions.each{ |f| puts f }
-            parsed.export
+            fp = VimHeader::FileParser.new(@filename)
+            fp.parse
+            fp.export
         end
     end
 
-    App.new(ARGV).run
+    App.new(ARGV[1]).run
 end
 
 
