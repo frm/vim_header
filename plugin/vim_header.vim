@@ -2,11 +2,11 @@ ruby_file vim_header.rb
 
 function! s:VimHeader(...)
     if a:0 == 0
-        let name = @%
-        let ft = &ft
+        let s:name = @%
+        let s:ft = &ft
     else
-        let name = a:1
-        let ft = matchstr(name, '/.*\.c/')
+        let s:name = a:1
+        let s:ft = matchstr(name, '/.*\.c/')
     endif
 
     if ft != ".c" || empty(ft)
