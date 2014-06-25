@@ -2,14 +2,14 @@
 
 module VimHeader
     class FileParser
-        attr_accessor :functions
         FUNCTION_LINE = /^\s?(?!static)\w+.*\s?{.*$/
         FUNCTION_BREAK_LINE = /^{.*$/
         FUNCTION_LINE_NO_PAR = /^\s?(?!static)\w+.*$/
 
         # Class methods
 
-        # Creates an array of cpp directives contained in a header file
+        # Creates an array of CPP directive for a new header file
+        # The file does must not exist already or the directives will be overriden
         def self.name_directives(filename)
             directive_filename = filename.upcase.gsub(".", "_") + "_"
             directives = Array.new
@@ -19,16 +19,22 @@ module VimHeader
             directives
         end
 
+        # Creates an array of CPP directives contained in a header file
+        # The method shall copy into the array all lines that include a '#'
+        # It shall ignore lines that contain nothing but whitespaces
         def self.directives_from_file(filename)
             directives = Array.new
             File.open(filename, "r").each_line do |line|
-                directives.push(line) if line.include?("#")
-                break if line =~ FileParser::FUNCTION_LINE_NO_PAR
+                if line.strip.length > 0
+                    directives.push(line) if line.include?("#")
+                    break if line =~ FileParser::FUNCTION_LINE_NO_PAR
+                end
             end
 
             directives
         end
 
+        # Returns the header filename
         def self.get_header_name(filename)
             filename.gsub(".c", ".h")
         end
@@ -36,15 +42,18 @@ module VimHeader
 
         def initialize(filename = nil)
             @functions = Array.new      # Array of functions to write in a header file
-            @brackets = 0               # nr of active brackets
+            @brackets = 0               # Nr of active brackets. For algorithm purposes, comments count as brackets
             @filename = filename || ""
         end
 
+        # Parses a given filename
         def parse_file(filename)
             @filename = filename
             self.parse
         end
 
+        # Parsing function
+        # Shall test every line for functions
         def parse
             previous_line = ""
             File.open(@filename, "r").each_line do |line|
@@ -52,11 +61,13 @@ module VimHeader
                 unless line.empty?
                     self.test_lines(line, previous_line)
                     previous_line = line
-                    @brackets += self.count_parenthesis(line)
+                    @brackets += self.count_brackets(line)
                 end
             end
         end
 
+        # Exports the current .c file into a corresponding .h
+        # It starts by building the CPP directives and then export every function
         def export
             header_file = FileParser.get_header_name(@filename)
             if File.exists?(header_file)
@@ -70,6 +81,7 @@ module VimHeader
 
         protected
 
+        # Shall look into the contents of a given line, seeing if itself contains a function or delimits a function to the previous
         def test_lines(line, previous_line)
             if (@brackets == 0 && line =~ FileParser::FUNCTION_LINE)
                 self.add_function(line)
@@ -79,20 +91,8 @@ module VimHeader
             end
         end
 
-        # This version includes commented lines in the header
-        def count_parenthesis2(line)
-            line.split(//).inject(0) do |result, c|
-                if (c == '{')
-                    result += 1
-                elsif (c == '}')
-                    result -= 1
-                end
-
-                result
-            end
-        end
-
-        def count_parenthesis(line)
+        # Counts the open/closed brackets in a given line
+        def count_brackets(line)
             i = 0
             count = 0
 
@@ -110,6 +110,7 @@ module VimHeader
             count
         end
 
+        # Receives a file line and extracts the function header contained in such
         def add_function(line)
             new_line = ""
             i = 0
@@ -121,6 +122,7 @@ module VimHeader
             @functions.push(new_line)
         end
 
+        # Exports the directives and the functions into a .h file
         def export_file(directives, filename)
             file = File.open(filename, "w")
             directives.each { |d| file.write(d) }
@@ -135,15 +137,6 @@ if __FILE__ == $0
         def initialize(filename)
             @filename = filename
         end
-
-        #def run
-        #    x = gets.strip
-        #    parsed = VimHeader::FileParser.new(x)
-        #    parsed.parse
-        #    parsed.functions.each{ |f| puts f }
-        #    parsed.export
-        #end
-
 
         def run
             fp = VimHeader::FileParser.new(@filename)
