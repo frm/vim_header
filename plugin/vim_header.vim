@@ -1,22 +1,22 @@
+let s:path = expand('<sfile>:p:h')
+
 function! s:VimHeader(...)
-    ruby_file vim_header.rb
-    if a:0 == 0
-        let s:name = @%
-        let s:ft = &ft
+    if !a:0
+        let l:name = @%
+        let l:ft = &ft
     else
-        let s:name = a:1
-        let s:ft = matchstr(name, '/.*\.c/')
+        let l:name = a:1
+        let l:ft = matchstr(name, '.*\.c')
     endif
 
-    if ft != ".c" || empty(ft)
+    if ft != "c" || empty(ft)
         echoerr "Wrong file extension"
+        echoerr ft
     else
-        ruby << EOF
-            puts name
-        EOF
+        let l:script = s:path . "/vim_header.rb " . name
+        exec '!ruby ' . l:script
     endif
 
 endfunction
 
-
-command! -nargs=1 VimHeader call s:VimHeader(<f-args>)
+silent command! -nargs=* VimHeader call s:VimHeader(<f-args>)
